@@ -15,10 +15,6 @@ export default function Home() {
         <section id="waitlist" className="px-4 pb-24">
           <div className="mx-auto max-w-xl rounded-[20px] border border-[var(--border)] bg-[var(--surface)] p-8">
             <h2 className="text-2xl">Get {site.name} when it launches</h2>
-            <p className="mt-3 text-[var(--text-muted)]">
-              We are opening it to a small number of salons, spas, and dental
-              practices first.
-            </p>
             <div className="mt-6">
               <WaitlistForm />
             </div>
