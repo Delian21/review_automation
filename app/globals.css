@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* Colour tokens from DESIGN.md. Light is the default. */
+:root {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --text: #1f2a2e;
+  --text-muted: #5b6b6f;
+  --primary: #2f6f6a;
+  --primary-text: #ffffff;
+  --accent: #c9a27a;
+  --border: #e7e2d9;
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 32px rgba(31, 42, 46, 0.1);
+
+  /* The sticky nav scrolls over arbitrary content, so it needs more opacity
+     than the hero card to keep its text above WCAG AA. */
+  --glass-bg-nav: rgba(255, 255, 255, 0.82);
+
+  --radius-input: 12px;
+  --radius-card: 20px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101817;
+    --surface: #17221f;
+    --text: #eaf1ee;
+    --text-muted: #9aaaa5;
+    --primary: #5fb3aa;
+    --primary-text: #0e1a18;
+    --accent: #d9b88f;
+    --border: #243430;
+
+    --glass-bg: rgba(23, 34, 31, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+
+    --glass-bg-nav: rgba(23, 34, 31, 0.85);
+
+    color-scheme: dark;
+  }
+}
+
+html {
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-fraunces), ui-serif, Georgia, serif;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Glass is limited to the sticky nav and one floating hero card. */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-card);
+}
+
+/* The sticky nav is the only glass surface over moving content. */
+.glass-nav {
+  background: var(--glass-bg-nav);
+}
+
+/* Fallback: browsers without blur, or users who reduce transparency. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
