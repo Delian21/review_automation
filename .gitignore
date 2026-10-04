@@ -4,3 +4,7 @@
 node_modules/
 .next/
 .DS_Store
+# Commit the documented example, keep real secrets ignored
+!.env.example
+
+*.tsbuildinfo
