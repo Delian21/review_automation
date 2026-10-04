@@ -1,0 +1,17 @@
+{
+  "board_hash": "5d880452cc01e58e",
+  "content_hash": "92acf03c4664662a",
+  "exit_code": 0,
+  "gate": "core",
+  "kind": "conformance_receipt",
+  "log_hash": "89f3aa7784cd13cc",
+  "project_identity": "c:\\users\\user\\documents\\review_automation",
+  "receipt_id": "receipt-ce4f6586fe9d",
+  "schema_version": 2,
+  "source_head": "759b5857d722c69c576d04551532d51c72207026",
+  "source_tree_fingerprint": "git-delta-v1:c66baf69a8306f3b95dfc7badb5f72b088f8de8408e933efadc4d149721a1195",
+  "state_hash": "db041919bc4b0219",
+  "timestamp_utc": "2026-10-04T20:49:35.752067Z",
+  "validator_protocol_version": "1",
+  "verdict": "PASS"
+}

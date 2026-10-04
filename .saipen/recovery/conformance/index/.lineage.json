@@ -1,0 +1,14 @@
+{
+  "content_xor": "e114615d43cf792a05e01f49da882317",
+  "inventory_xor": "0c058e4e7ba42dc5587836eef08764e7",
+  "lineage_hash": "02ef1b382a3b57b0e490740bc1f16bb1d8a984efd12efc1498d7c1a610f0ccfd",
+  "members": [
+    [
+      "2026-10-04T20_49_35.752067Z_receipt-ce4f6586fe9d_core_PASS.json",
+      "e114615d43cf792a05e01f49da882317"
+    ]
+  ],
+  "receipt_count": 1,
+  "receipt_dir_mtime_ns": 1791146976477506900,
+  "version": 1
+}
