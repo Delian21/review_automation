@@ -2,7 +2,10 @@ import { BlobDriftVisibility } from "@/components/BlobDriftVisibility";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
+    <section className="relative isolate overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
+      {/* isolate creates a stacking context so the negative z-index on the blob
+          layer stays contained here. Without it the -z-10 escaped to the root
+          and painted behind the body background, making the blobs invisible. */}
       <BlobDriftVisibility />
       {/* Soft blurred colour shapes so the glass has something to blur. They sit
           behind the glass card, clear of the headline and subhead, and drift
