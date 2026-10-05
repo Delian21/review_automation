@@ -22,6 +22,15 @@
   --radius-input: 12px;
   --radius-card: 20px;
 
+  /* Ambient drift behind the hero glass card. Light values run higher than
+     dark: the light glass (55% white) washes colour out badly, so the blobs
+     need more saturation and opacity to read at all. Capped so the muted card
+     label stays above 4.5:1 (sage ceiling is 0.305 on the plain background). */
+  --blob-sage: #6f9b8c;
+  --blob-sage-o: 0.24;
+  --blob-sand: #d9bd97;
+  --blob-sand-o: 0.22;
+
   color-scheme: light;
 }
 
@@ -41,6 +50,12 @@
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 
     --glass-bg-nav: rgba(23, 34, 31, 0.85);
+
+    /* Lower opacity than light so nothing glows against the dark green. */
+    --blob-sage: #5fb3aa;
+    --blob-sage-o: 0.14;
+    --blob-sand: #d9b88f;
+    --blob-sand-o: 0.18;
 
     color-scheme: dark;
   }
@@ -106,6 +121,75 @@ h3 {
   outline: 2px solid var(--primary);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* Ambient drift behind the hero glass card. Transform and opacity only —
+   blur radius and size are never animated, so the effect stays cheap and the
+   glass keeps a stable backdrop. Durations are mutually prime-ish so the three
+   blobs don't visibly resync. */
+.blob-drift {
+  will-change: transform, opacity;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+}
+
+.blob-drift-1 {
+  animation-name: blob-drift-1;
+  animation-duration: 32s;
+}
+
+.blob-drift-2 {
+  animation-name: blob-drift-2;
+  animation-duration: 38s;
+}
+
+.blob-drift-3 {
+  animation-name: blob-drift-3;
+  animation-duration: 29s;
+}
+
+@keyframes blob-drift-1 {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(24px, -18px, 0);
+  }
+}
+
+@keyframes blob-drift-2 {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* Vertical travel held to 6px: at 14px this blob's envelope crossed the
+       subhead at full drift (measured 7px overlap at 360px). */
+    transform: translate3d(-20px, -6px, 0);
+  }
+}
+
+@keyframes blob-drift-3 {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(16px, -22px, 0);
+  }
+}
+
+/* Paused while the tab is hidden (set on <html> by the drift visibility hook). */
+html[data-tab-hidden="true"] .blob-drift {
+  animation-play-state: paused;
+}
+
+/* Reduced motion turns the drift off entirely rather than letting the generic
+   block below squash it to a 0.01ms loop, which would still run. */
+@media (prefers-reduced-motion: reduce) {
+  .blob-drift {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
