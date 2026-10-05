@@ -26,10 +26,19 @@
      dark: the light glass (55% white) washes colour out badly, so the blobs
      need more saturation and opacity to read at all. Capped so the muted card
      label stays above 4.5:1 (sage ceiling is 0.305 on the plain background). */
-  --blob-sage: #6f9b8c;
-  --blob-sage-o: 0.24;
-  --blob-sand: #d9bd97;
-  --blob-sand-o: 0.22;
+  --blob-sage: #7ba698;
+  --blob-sage-o: 0.22;
+  --blob-sand: #ddc3a1;
+  --blob-sand-o: 0.20;
+
+  /* Smoke is a mask over a theme colour, so it darkens whatever is behind it
+     rather than tinting it. Opacities are low on purpose: a blob and a smoke
+     layer can sit over the same spot, and the two stack. Measured together
+     they must still clear 4.5:1 for the small muted card label. */
+  --smoke-sage: #6f9b8c;
+  --smoke-sage-o: 0.22;
+  --smoke-sand: #c9a97f;
+  --smoke-sand-o: 0.18;
 
   color-scheme: light;
 }
@@ -51,11 +60,18 @@
 
     --glass-bg-nav: rgba(23, 34, 31, 0.85);
 
-    /* Lower opacity than light so nothing glows against the dark green. */
-    --blob-sage: #5fb3aa;
-    --blob-sage-o: 0.14;
-    --blob-sand: #d9b88f;
-    --blob-sand-o: 0.18;
+    /* Deeper and slightly stronger than the light values: on the dark green a
+       pale blob reads as a glow, so the dark-mode colours are pushed darker
+       and the sand kept dim enough to avoid going muddy. */
+    --blob-sage: #3d7d76;
+    --blob-sage-o: 0.26;
+    --blob-sand: #9c7f5c;
+    --blob-sand-o: 0.24;
+
+    --smoke-sage: #4d8b83;
+    --smoke-sage-o: 0.16;
+    --smoke-sand: #8a7053;
+    --smoke-sand-o: 0.12;
 
     color-scheme: dark;
   }
@@ -127,6 +143,118 @@ h3 {
    blur radius and size are never animated, so the effect stays cheap and the
    glass keeps a stable backdrop. Durations are mutually prime-ish so the three
    blobs don't visibly resync. */
+/* The blob and smoke layers fade out before the hero's bottom edge. Without
+   this the section clips them on a hard horizontal line, which reads as a
+   mistake rather than as a wash running off the page. */
+.hero-wash {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 62%,
+    rgba(0, 0, 0, 0.55) 82%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 62%,
+    rgba(0, 0, 0, 0.55) 82%,
+    transparent 100%
+  );
+}
+
+/* Smoke layers: one small grayscale WebP used as a CSS mask, tinted by the
+   theme colour behind it. No SVG turbulence, canvas, WebGL, or video. */
+.smoke {
+  background-repeat: no-repeat;
+  background-position: center;
+  -webkit-mask-image: var(--smoke-mask);
+  mask-image: var(--smoke-mask);
+  -webkit-mask-size: var(--smoke-size);
+  mask-size: var(--smoke-size);
+  will-change: transform, opacity;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+}
+
+.smoke-1 {
+  --smoke-mask: url(/smoke.webp);
+  --smoke-size: 130% 62%;
+  background-image: radial-gradient(
+    ellipse at center,
+    var(--smoke-sage) 0%,
+    transparent 72%
+  );
+  animation-name: smoke-drift-1;
+  animation-duration: 52s;
+}
+
+.smoke-2 {
+  --smoke-mask: url(/smoke.webp);
+  --smoke-size: 108% 78%;
+  background-image: radial-gradient(
+    ellipse at center,
+    var(--smoke-sand) 0%,
+    transparent 70%
+  );
+  animation-name: smoke-drift-2;
+  animation-duration: 44s;
+}
+
+.smoke-3 {
+  --smoke-mask: url(/smoke.webp);
+  --smoke-size: 152% 54%;
+  background-image: radial-gradient(
+    ellipse at center,
+    var(--smoke-sage) 0%,
+    transparent 74%
+  );
+  animation-name: smoke-drift-3;
+  animation-duration: 58s;
+}
+
+/* Rotation is part of transform, so this stays within the transform-only rule.
+   Upward travel is capped: these layers sit just under the subhead, and the
+   rotation's radial growth widens the envelope further than the translate. */
+@keyframes smoke-drift-1 {
+  from {
+    transform: translate3d(-16px, -6px, 0) rotate(-1.6deg);
+  }
+  to {
+    transform: translate3d(18px, -12px, 0) rotate(1.8deg);
+  }
+}
+
+@keyframes smoke-drift-2 {
+  from {
+    transform: translate3d(12px, -4px, 0) rotate(1.2deg);
+  }
+  to {
+    transform: translate3d(-14px, -10px, 0) rotate(-1.4deg);
+  }
+}
+
+@keyframes smoke-drift-3 {
+  from {
+    transform: translate3d(-10px, -6px, 0) rotate(-1deg);
+  }
+  to {
+    transform: translate3d(20px, -2px, 0) rotate(2deg);
+  }
+}
+
+html[data-tab-hidden="true"] .smoke {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smoke {
+    animation: none;
+    will-change: auto;
+  }
+}
+
 .blob-drift {
   will-change: transform, opacity;
   animation-iteration-count: infinite;
