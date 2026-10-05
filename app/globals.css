@@ -48,6 +48,10 @@
 
 html {
   background-color: var(--bg);
+  /* Anchor links (e.g. "Join the waitlist") ease instead of jumping. Scoped to
+     html rather than * so inner scroll containers stay instant. The
+     prefers-reduced-motion block below forces this back to auto. */
+  scroll-behavior: smooth;
 }
 
 body {

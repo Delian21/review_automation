@@ -91,7 +91,8 @@ Rules:
 - One main action per screen, in `--primary`.
 - Generous spacing. One radius scale (12px inputs and buttons, 20px cards). No decorative gradients on solid surfaces.
 - Visible keyboard focus on every interactive element.
-- Motion: one gentle page-load reveal at most, plus feedback when someone taps something. Respect `prefers-reduced-motion`.
+- Motion: one gentle page-load reveal at most, plus feedback when someone taps something. Anchor links (for example "Join the waitlist") scroll smoothly rather than jumping. Respect `prefers-reduced-motion`.
+- Ambient drift: one slow drifting colour wash behind the hero glass card, so the glass has something to blur. This is the only looping animation on the site. Transform and opacity only — never animate blur radius or size. Loop between 25 and 40 seconds. The wash must stay clear of the headline and subhead at every point in the drift, and must not reduce text contrast below WCAG AA at any point in its travel. Blob colours and opacities are theme tokens with separate light and dark values; dark uses lower opacity so nothing glows or goes muddy. Off entirely under `prefers-reduced-motion`, and paused while the tab is hidden.
 
 ## Voice
 

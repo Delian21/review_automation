@@ -12,7 +12,9 @@ export default function Home() {
         <Hero />
         <Steps />
 
-        <section id="waitlist" className="px-4 pb-24">
+        {/* scroll-mt clears the sticky nav (measured 77px tall at 360px and
+            1280px) so the heading is never hidden behind it after an anchor jump. */}
+        <section id="waitlist" className="scroll-mt-[77px] px-4 pb-24">
           <div className="mx-auto max-w-xl rounded-[20px] border border-[var(--border)] bg-[var(--surface)] p-8">
             <h2 className="text-2xl">Get {site.name} when it launches</h2>
             <div className="mt-6">
