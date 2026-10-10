@@ -14,6 +14,18 @@ Owners of small service businesses in the US, UK, Canada, and Australia. Non-tec
 
 Owners know reviews bring in new customers, but they forget to ask or feel awkward asking. Reviews arrive randomly instead of consistently.
 
+## What we've learned so far (early evidence, 3 responses, UK hair businesses)
+
+Treat this as a first impression, not proof. Small sample, from the owner's own network, hair and braiding only.
+
+- Customers are reached mainly by WhatsApp and phone calls. Instagram messages are common. Email and SMS were rare.
+- New customers mostly find them through Instagram and TikTok. Google search or Maps is a minority source.
+- All three say they ask for reviews "most of the time". The stated barriers are being too busy and forgetting sometimes.
+- None pay for a review tool today.
+- Several owners dislike filling in long forms. Follow-ups should be short chat messages.
+
+Open question: how much do Google reviews matter to these owners? Not yet answered.
+
 ## Core loop (version 1)
 
 1. Owner signs up and adds their business name and Google review link.
@@ -79,12 +91,19 @@ Stop and show me after each phase. Wait for approval before starting the next.
 
 - **Phase 1: Landing page and waitlist.** Real landing page following DESIGN.md. Waitlist form posts to a real destination (Tally, Formspree, or our own database if the backend already exists). No fake data screens.
 - **Phase 2: Auth, database, and setup.** Supabase project, tables above, row-level security, signup and login, setup page.
-- **Phase 3: Customers and first send.** Add customer and CSV import. Send ONE real email through Resend, triggered manually.
-- **Phase 4: Scheduling and SMS.** Scheduled sending, delay setting, 30-day limit, opt-out, Twilio. (Twilio sender registration for US and UK takes time. Start early, or launch email-only first.)
+- **Phase 3: Customers and channel decision.** Add customer and CSV import. Do NOT build any sending yet. Channel (email, SMS, or WhatsApp) is undecided and depends on owner input. Before promising automated WhatsApp, check Meta's current rules on templates, opt-in, and fees.
+- **Phase 4: Sending, scheduling, and opt-out** on the chosen channel, with the compliance rules above unchanged.
 - **Phase 5: Dashboard and feedback.** Tracking redirect, click counts, private feedback page and email.
 - **Phase 6: Polish and launch.** Contrast and mobile checks, error states, privacy policy and terms pages.
 
 If I decide to start the backend earlier, Phase 1 and Phase 2 can be swapped or merged. Ask me before reordering.
+
+## Free trial and checkpoint
+
+Phase 2 onward runs as a free trial for a few invited owners, to learn before adding features.
+
+- Before any real owner enters real customer data: opt-out, the consent checkbox, and a basic privacy notice must exist. This holds even during a free trial.
+- Checkpoint: if none of the invited owners use the app twice within the first two weeks, stop and rethink before building more.
 
 ## Done means
 
@@ -96,3 +115,5 @@ One real business can sign up, add a customer, and that customer receives a mess
 - Pricing and trial length for the landing page
 - Email-only or email plus SMS at launch
 - Whether the Google review link is entered manually or looked up from the business name
+- Which channel to use for sending (see Phase 3), pending owner input
+- Whether owners add customers one by one, or the app should pick up visits from a booking tool
