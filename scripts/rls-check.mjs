@@ -119,6 +119,16 @@ async function updateCount(token, name, id, patch) {
   return { status: r.status, count: Array.isArray(r.rows) ? r.rows.length : -1 };
 }
 
+async function deleteCount(token, name, id) {
+  const r = await req({
+    url: table(name, `?id=eq.${id}`),
+    method: "DELETE",
+    token,
+    prefer: "return=representation",
+  });
+  return { status: r.status, count: Array.isArray(r.rows) ? r.rows.length : -1 };
+}
+
 let A;
 let B;
 let fatal = false;
@@ -220,6 +230,68 @@ try {
     bInsert.status >= 400,
     `status ${bInsert.status}`,
   );
+
+  // B must not delete A's business or customer.
+  const bDelBiz = await deleteCount(B.jwt, "businesses", ids.business);
+  record(
+    "B cannot delete A's business",
+    "0 rows or denied",
+    bDelBiz.count === 0 || bDelBiz.status >= 400,
+    `status ${bDelBiz.status}, rows ${bDelBiz.count}`,
+  );
+  const bDelCust = await deleteCount(B.jwt, "customers", ids.customer);
+  record(
+    "B cannot delete A's customer",
+    "0 rows or denied",
+    bDelCust.count === 0 || bDelCust.status >= 400,
+    `status ${bDelCust.status}, rows ${bDelCust.count}`,
+  );
+
+  // B must not insert a message under A's customer, or feedback under A's business.
+  const bMsg = await req({
+    url: table("messages"),
+    method: "POST",
+    token: B.jwt,
+    prefer: "return=representation",
+    body: { customer_id: ids.customer, channel: "email" },
+  });
+  record(
+    "B cannot insert a message under A's customer",
+    "denied (4xx)",
+    bMsg.status >= 400,
+    `status ${bMsg.status}`,
+  );
+  const bFb = await req({
+    url: table("feedback"),
+    method: "POST",
+    token: B.jwt,
+    prefer: "return=representation",
+    body: { business_id: ids.business, customer_id: ids.customer, text: "intruder" },
+  });
+  record(
+    "B cannot insert feedback under A's business",
+    "denied (4xx)",
+    bFb.status >= 400,
+    `status ${bFb.status}`,
+  );
+
+  // --- anon has no access to any app table (grants were revoked from anon) ---
+  for (const t of ["businesses", "customers", "messages", "feedback"]) {
+    const ar = await req({ url: table(t, "?select=id"), token: ANON });
+    record(
+      `anon cannot read ${t}`,
+      "denied (4xx) or empty",
+      ar.status >= 400 || (Array.isArray(ar.rows) && ar.rows.length === 0),
+      `status ${ar.status}`,
+    );
+    const aw = await req({ url: table(t), method: "POST", token: ANON, body: {} });
+    record(
+      `anon cannot write ${t}`,
+      "denied (4xx)",
+      aw.status >= 400,
+      `status ${aw.status}`,
+    );
+  }
 
   // --- waitlist: no browser access (anon or authenticated) ---
   // Anon is simulated exactly as a browser would: apikey AND Authorization set to

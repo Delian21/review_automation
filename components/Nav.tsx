@@ -1,18 +1,77 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { site } from "@/lib/site";
+import { createClient } from "@/lib/supabase/client";
+
+type State = "loading" | "signed-out" | "signed-in";
 
 export function Nav() {
+  const supabase = useMemo(() => createClient(), []);
+  const [state, setState] = useState<State>("loading");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setState(data.user ? "signed-in" : "signed-out");
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setState(session?.user ? "signed-in" : "signed-out");
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [supabase]);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.assign("/");
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-[var(--bg)] px-4 pt-4">
-      <nav className="glass glass-nav mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-        <span className="text-lg font-semibold tracking-tight">
-          {site.name}
-        </span>
-        <a
-          href="#waitlist"
-          className="rounded-[12px] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-text)] transition-opacity hover:opacity-90"
+      <nav className="glass glass-nav mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3">
+        <Link
+          href="/"
+          className="text-lg font-semibold tracking-tight text-[var(--text)]"
         >
-          Join the waitlist
-        </a>
+          {site.name}
+        </Link>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* The waitlist jump-link is the landing page's only entry point to
+              the form (the hero has no CTA), so it stays for signed-out visitors. */}
+          {state === "signed-out" && (
+            <>
+              <a
+                href="#waitlist"
+                className="hidden text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] sm:inline"
+              >
+                Join the waitlist
+              </a>
+              <Link
+                href="/login"
+                className="rounded-[12px] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--bg)]"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-[12px] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-text)] transition-opacity hover:opacity-90"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+
+          {state === "signed-in" && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-[12px] border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--surface)]"
+            >
+              Log out
+            </button>
+          )}
+        </div>
       </nav>
     </header>
   );
