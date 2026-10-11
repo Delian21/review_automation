@@ -103,6 +103,7 @@ If I decide to start the backend earlier, Phase 1 and Phase 2 can be swapped or 
 Phase 2 onward runs as a free trial for a few invited owners, to learn before adding features.
 
 - Before any real owner enters real customer data: opt-out, the consent checkbox, and a basic privacy notice must exist. This holds even during a free trial.
+- Email confirmation must be turned ON in Supabase before any real owner is invited. It is OFF during development and the trial setup only, so signup works without email deliverability. Turning it on is a launch gate, not an optional polish step.
 - Checkpoint: if none of the invited owners use the app twice within the first two weeks, stop and rethink before building more.
 
 ## Done means
