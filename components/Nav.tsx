@@ -63,13 +63,27 @@ export function Nav() {
           )}
 
           {state === "signed-in" && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-[12px] border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--surface)]"
-            >
-              Log out
-            </button>
+            <>
+              <Link
+                href="/customers"
+                className="rounded-[12px] px-2 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--bg)] sm:px-3"
+              >
+                Customers
+              </Link>
+              <Link
+                href="/setup"
+                className="rounded-[12px] px-2 py-2 text-sm font-medium text-[var(--text-muted)] transition-colors hover:bg-[var(--bg)] hover:text-[var(--text)] sm:px-3"
+              >
+                Setup
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-[12px] border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--surface)] sm:px-4"
+              >
+                Log out
+              </button>
+            </>
           )}
         </div>
       </nav>

@@ -92,6 +92,7 @@ Stop and show me after each phase. Wait for approval before starting the next.
 - **Phase 1: Landing page and waitlist.** Real landing page following DESIGN.md. Waitlist form posts to a real destination (Tally, Formspree, or our own database if the backend already exists). No fake data screens.
 - **Phase 2: Auth, database, and setup.** Supabase project, tables above, row-level security, signup and login, setup page.
 - **Phase 3: Customers and channel decision.** Add customer and CSV import. Do NOT build any sending yet. Channel (email, SMS, or WhatsApp) is undecided and depends on owner input. Before promising automated WhatsApp, check Meta's current rules on templates, opt-in, and fees.
+  - Decision: the channel is WhatsApp via manual click-to-chat (`wa.me`). ReviewLoop opens the chat with the message prefilled; the owner reads it and presses send. No Cloud API, no approved templates, no per-message fees, no tracking redirect — checked against Meta's pricing docs, which only apply to the Platform. Automated sending is still Phase 4.
 - **Phase 4: Sending, scheduling, and opt-out** on the chosen channel, with the compliance rules above unchanged.
 - **Phase 5: Dashboard and feedback.** Tracking redirect, click counts, private feedback page and email.
 - **Phase 6: Polish and launch.** Contrast and mobile checks, error states, privacy policy and terms pages.

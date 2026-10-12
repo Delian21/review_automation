@@ -8,3 +8,6 @@ node_modules/
 !.env.example
 
 *.tsbuildinfo
+
+# Local scratch (dev server log, test ids)
+.tmp/

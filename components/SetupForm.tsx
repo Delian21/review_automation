@@ -124,7 +124,8 @@ export function SetupForm({ ownerId, initial }: Props) {
             <code className="rounded-[12px] bg-[var(--bg)] px-1.5 py-0.5">
               {"{review_link}"}
             </code>{" "}
-            where the Google link should go. Every customer gets the same link.
+            where the Google link should go. Every customer gets the same link,
+            and we add an opt-out line for you.
           </p>
         </div>
 

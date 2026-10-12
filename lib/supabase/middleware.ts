@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Refreshes the Supabase session cookie on every matched request and enforces
-// the signed-in gate for /setup. Signed-out visitors to /setup go to /login.
+// the signed-in gate for the owner pages. Signed-out visitors go to /login.
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -35,8 +35,8 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  // Signed-out visitors cannot reach the setup page.
-  if (!user && path.startsWith("/setup")) {
+  // Signed-out visitors cannot reach the setup or customers pages.
+  if (!user && (path.startsWith("/setup") || path.startsWith("/customers"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";

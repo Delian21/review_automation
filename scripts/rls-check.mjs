@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Two-owner row-level-security proof for ReviewLoop Phase 2.
+// Two-owner row-level-security and compliance proof for ReviewLoop Phases 2-3.
 // Reads keys from .env.local, never hardcodes them. Run: node scripts/rls-check.mjs
 
 import { readFileSync } from "node:fs";
@@ -168,6 +168,31 @@ try {
   }
   ids.customer = cust.rows[0].id;
 
+  // Phase 3 gives each message test its own customer: the 30-day guard
+  // refuses a second request on the same customer, so sharing one customer
+  // would mask what each check is actually proving.
+  const addCustomer = async (body) => {
+    const r = await req({
+      url: table("customers"),
+      method: "POST",
+      token: A.jwt,
+      prefer: "return=representation",
+      body: { business_id: ids.business, ...body },
+    });
+    if (r.status !== 201) {
+      throw new Error(`A customer insert failed: ${r.status} ${JSON.stringify(r.rows)}`);
+    }
+    return r.rows[0].id;
+  };
+  ids.customerFresh = await addCustomer({ name: "Customer Fresh", phone: "+447700900555" });
+  ids.customerPrepared = await addCustomer({ name: "Customer Prepared", phone: "+447700900666" });
+  ids.customerDenied = await addCustomer({ name: "Customer Denied", phone: "+447700900777" });
+  ids.customerOptedOut = await addCustomer({
+    name: "Customer Opted Out",
+    phone: "+447700900888",
+    opted_out: true,
+  });
+
   const msg = await req({
     url: table("messages"),
     method: "POST",
@@ -247,13 +272,15 @@ try {
     `status ${bDelCust.status}, rows ${bDelCust.count}`,
   );
 
-  // B must not insert a message under A's customer, or feedback under A's business.
+  // B must not insert a message under A's customer, or feedback under A's
+  // business. The target customer has no messages, so the 30-day trigger has
+  // nothing to say: a denial here can only have come from row-level security.
   const bMsg = await req({
     url: table("messages"),
     method: "POST",
     token: B.jwt,
     prefer: "return=representation",
-    body: { customer_id: ids.customer, channel: "email" },
+    body: { customer_id: ids.customerFresh, channel: "whatsapp", status: "prepared" },
   });
   record(
     "B cannot insert a message under A's customer",
@@ -273,6 +300,105 @@ try {
     "denied (4xx)",
     bFb.status >= 400,
     `status ${bFb.status}`,
+  );
+
+  // B must not delete A's message (the API grants messages no DELETE at all).
+  const bDelMsg = await deleteCount(B.jwt, "messages", ids.message);
+  record(
+    "B cannot delete A's message",
+    "0 rows or denied",
+    bDelMsg.count === 0 || bDelMsg.status >= 400,
+    `status ${bDelMsg.status}, rows ${bDelMsg.count}`,
+  );
+
+  // B must not lift the opt-out on A's customer, and must not list A's customers.
+  const bOptOut = await updateCount(B.jwt, "customers", ids.customerOptedOut, { opted_out: false });
+  record(
+    "B cannot undo opt-out on A's customer",
+    "0 rows or denied",
+    bOptOut.count === 0 || bOptOut.status >= 400,
+    `status ${bOptOut.status}, rows ${bOptOut.count}`,
+  );
+  const bList = await req({
+    url: table("customers", `?business_id=eq.${ids.business}&select=id`),
+    token: B.jwt,
+  });
+  record(
+    "B cannot list A's customers",
+    "0 rows or denied",
+    bList.status >= 400 || (Array.isArray(bList.rows) && bList.rows.length === 0),
+    `status ${bList.status}`,
+  );
+
+  // --- Phase 3: prepared sends, opt-out, and the 30-day rule ---
+  // Enforced by the trigger in 0002_phase3_customers.sql, so they hold for a
+  // hand-rolled client too, not only for our own UI.
+  const prepared = await req({
+    url: table("messages"),
+    method: "POST",
+    token: A.jwt,
+    prefer: "return=representation",
+    body: { customer_id: ids.customerPrepared, channel: "whatsapp", status: "prepared" },
+  });
+  record(
+    "A can record a prepared WhatsApp request",
+    "created (201)",
+    prepared.status === 201,
+    `status ${prepared.status}`,
+  );
+
+  const secondRequest = await req({
+    url: table("messages"),
+    method: "POST",
+    token: A.jwt,
+    body: { customer_id: ids.customerPrepared, channel: "whatsapp", status: "prepared" },
+  });
+  record(
+    "a second request inside 30 days is refused",
+    "denied (4xx)",
+    secondRequest.status >= 400,
+    `status ${secondRequest.status}`,
+  );
+
+  const optedOutSend = await req({
+    url: table("messages"),
+    method: "POST",
+    token: A.jwt,
+    body: { customer_id: ids.customerOptedOut, channel: "whatsapp", status: "prepared" },
+  });
+  record(
+    "an opted-out customer cannot be messaged",
+    "denied (4xx)",
+    optedOutSend.status >= 400,
+    `status ${optedOutSend.status}`,
+  );
+
+  // A failed send is not a request: the owner may try that customer again.
+  const failedSend = await req({
+    url: table("messages"),
+    method: "POST",
+    token: A.jwt,
+    prefer: "return=representation",
+    body: { customer_id: ids.customerDenied, channel: "whatsapp", status: "failed" },
+  });
+  record(
+    "A can record a failed send",
+    "created (201)",
+    failedSend.status === 201,
+    `status ${failedSend.status}`,
+  );
+  const retryAfterFailure = await req({
+    url: table("messages"),
+    method: "POST",
+    token: A.jwt,
+    prefer: "return=representation",
+    body: { customer_id: ids.customerDenied, channel: "whatsapp", status: "prepared" },
+  });
+  record(
+    "a failed send does not block the next request",
+    "created (201)",
+    retryAfterFailure.status === 201,
+    `status ${retryAfterFailure.status}`,
   );
 
   // --- anon has no access to any app table (grants were revoked from anon) ---

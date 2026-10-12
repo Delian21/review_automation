@@ -18,3 +18,14 @@ export const errorClass =
   "rounded-[12px] border border-[var(--border)] border-l-4 border-l-[var(--primary)] bg-[var(--bg)] p-4 text-sm text-[var(--text)]";
 
 export const mutedClass = "text-sm text-[var(--text-muted)]";
+
+// Secondary actions: row controls keep --primary for the one main action per
+// screen (Send on WhatsApp), everything else stays bordered and quiet.
+export const secondaryButtonClass =
+  "rounded-[12px] border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--bg)] disabled:opacity-60";
+
+export const smallPrimaryButtonClass =
+  "rounded-[12px] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-text)] transition-opacity hover:opacity-90 disabled:opacity-60";
+
+export const badgeClass =
+  "shrink-0 rounded-[12px] border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs font-medium text-[var(--text-muted)]";
