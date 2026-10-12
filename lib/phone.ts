@@ -9,7 +9,9 @@ export type PhoneResult =
 const HINT = "Use a UK number like 07700 900123, or any number with + in front.";
 
 export function normalizePhone(input: string): PhoneResult {
-  const cleaned = (input ?? "").replace(/[\s().\-/]/g, "");
+  // Strips the punctuation real exports carry: spaces, NBSP (\s covers it),
+  // brackets, slashes, and the ASCII/Unicode dashes Excel likes to swap in.
+  const cleaned = (input ?? "").replace(/[\s().\-/\u2010-\u2015\u2212]/g, "");
   if (!cleaned) {
     return { ok: false, error: "Enter a phone number." };
   }
@@ -39,6 +41,15 @@ export function normalizePhone(input: string): PhoneResult {
     };
   } else {
     return { ok: false, error: `That phone number looks too short. ${HINT}` };
+  }
+
+  // "+44 (0)7700…" — a trunk zero written straight after the country code is
+  // a directory convention, not part of the number. Only reachable from an
+  // explicitly dialled +44/0044, and UK national numbers never start with 0,
+  // so dropping it is safe. (No country code begins 440, so this can't
+  // misfire on another country.)
+  if (digits.startsWith("440")) {
+    digits = `44${digits.slice(3)}`;
   }
 
   if (!/^[1-9][0-9]{6,14}$/.test(digits)) {
