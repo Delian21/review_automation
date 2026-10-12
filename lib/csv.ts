@@ -80,9 +80,6 @@ export function parseCsv(input: string): string[][] {
   return rows;
 }
 
-// Headers are matched leniently because exports name these columns a dozen
-// ways ("Mobile", "Phone Number", "e-mail"). Normalise, then accept the
-// common spellings.
 const NAME_HEADERS = ["name", "customername", "customer", "fullname", "contactname"];
 const PHONE_HEADERS = [
   "phone",
@@ -97,12 +94,21 @@ const PHONE_HEADERS = [
 ];
 const EMAIL_HEADERS = ["email", "emailaddress", "mail"];
 
-function normaliseHeader(cell: string): string {
-  return cell.trim().toLowerCase().replace(/[\s_\-().]/g, "");
+// Headers are matched leniently because exports name these columns a dozen
+// ways ("Mobile", "Phone Number", "e-mail", "Phone (home)"). A cell matches
+// when its letters-and-digits form, or any separator-delimited token inside
+// it, is one of the accepted spellings.
+function headerMatches(cell: string, accepted: string[]): boolean {
+  const lower = (cell ?? "").trim().toLowerCase();
+  const whole = lower.replace(/[^a-z0-9]/g, "");
+  if (accepted.includes(whole)) return true;
+  return lower
+    .split(/[^a-z0-9]+/)
+    .some((token) => token !== "" && accepted.includes(token));
 }
 
 function findColumn(header: string[], accepted: string[]): number {
-  return header.findIndex((cell) => accepted.includes(normaliseHeader(cell)));
+  return header.findIndex((cell) => headerMatches(cell, accepted));
 }
 
 export function readCustomerCsv(text: string): CsvRead {
