@@ -5,7 +5,7 @@ import { AddCustomerForm } from "@/components/AddCustomerForm";
 import { CustomerList, type CustomerRow } from "@/components/CustomerList";
 import { CsvImport } from "@/components/CsvImport";
 import { Nav } from "@/components/Nav";
-import { mutedClass } from "@/lib/forms";
+import { mutedClass, secondaryButtonClass } from "@/lib/forms";
 import { COOLDOWN_DAYS, nextAllowedAt, shortDate } from "@/lib/message";
 import { createClient } from "@/lib/supabase/server";
 import { site } from "@/lib/site";
@@ -107,6 +107,12 @@ export default async function CustomersPage() {
               : `${customers.length} customers on your list.`}{" "}
             Add them after their visit, then send your review request on WhatsApp.
           </p>
+
+          {/* Plain anchor, not a Link: the route answers with an attachment, so
+              a router prefetch must never trigger it. */}
+          <a href="/api/customers/export" className={`${secondaryButtonClass} mt-4 inline-block`}>
+            Download customers as CSV
+          </a>
 
           <div className="mt-8 flex flex-col gap-6">
             <AddCustomerForm businessId={business.id} />

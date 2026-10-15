@@ -40,6 +40,9 @@ if (!URL_ || !ANON || !SERVICE) {
 
 const rest = `${URL_}/rest/v1`;
 const authAdmin = `${URL_}/auth/v1/admin/users`;
+// The export checks exercise the real Next.js route, so the dev server must be
+// running. APP_URL overrides; the default matches this project's dev port.
+const APP_URL = process.env.APP_URL || "http://localhost:3100";
 
 const results = [];
 function record(name, expected, pass, detail) {
@@ -127,6 +130,24 @@ async function deleteCount(token, name, id) {
     prefer: "return=representation",
   });
   return { status: r.status, count: Array.isArray(r.rows) ? r.rows.length : -1 };
+}
+
+// Fetches the real /api/customers/export as the given owner. status 0 means
+// the dev server was unreachable — the calling check must FAIL, never skip.
+async function exportCsv(jwt) {
+  try {
+    const res = await fetch(`${APP_URL}/api/customers/export`, {
+      headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
+      signal: AbortSignal.timeout(10000),
+    });
+    return {
+      status: res.status,
+      text: await res.text(),
+      disposition: res.headers.get("content-disposition") ?? "",
+    };
+  } catch (error) {
+    return { status: 0, text: "", disposition: "", detail: String(error) };
+  }
 }
 
 let A;
@@ -455,6 +476,89 @@ try {
     "denied (4xx)",
     authedWrite.status >= 400,
     `status ${authedWrite.status}`,
+  );
+
+  // --- CSV export: an owner's export is scoped to their own customers ---
+  // B gets real data of their own first — including an accented name (UTF-8)
+  // and a formula-injection payload — so a wrong file fails on any layer.
+  const bBiz = await req({
+    url: table("businesses"),
+    method: "POST",
+    token: B.jwt,
+    prefer: "return=representation",
+    body: {
+      owner_id: B.id,
+      name: "B Salon",
+      google_review_link: "https://g.page/r/example/review",
+      message_template: "Hi {customer_name}, thanks for coming in. {review_link}",
+    },
+  });
+  if (bBiz.status !== 201 || !bBiz.rows?.[0]?.id) {
+    throw new Error(`B business insert failed: ${bBiz.status} ${JSON.stringify(bBiz.rows)}`);
+  }
+  ids.businessB = bBiz.rows[0].id;
+
+  const bAddCustomer = async (body) => {
+    const r = await req({
+      url: table("customers"),
+      method: "POST",
+      token: B.jwt,
+      prefer: "return=representation",
+      body: { business_id: ids.businessB, ...body },
+    });
+    if (r.status !== 201) {
+      throw new Error(`B customer insert failed: ${r.status} ${JSON.stringify(r.rows)}`);
+    }
+    return r.rows[0].id;
+  };
+  await bAddCustomer({ name: "B Customer", phone: "+447700900999", email: "bc@example.com" });
+  await bAddCustomer({ name: "Zoë Ángel", phone: "+447700900111" });
+  await bAddCustomer({ name: "=1+1", email: "formula@example.com" });
+
+  const unreachable = (r) =>
+    r.status === 0
+      ? `dev server not reachable at ${APP_URL} — start it first (npm run dev -- -p 3100). ${r.detail ?? ""}`
+      : "";
+
+  const bExport = await exportCsv(B.jwt);
+  record(
+    "owner B's export contains only B's customers",
+    "200, B's rows, none of A's, dated filename",
+    bExport.status === 200 &&
+      bExport.text.includes("B Customer") &&
+      bExport.text.includes("Zoë Ángel") &&
+      !bExport.text.includes("Customer One") &&
+      !bExport.text.includes("+447700900555") &&
+      !bExport.text.includes("c1@example.com") &&
+      /^attachment; filename="customers-\d{4}-\d{2}-\d{2}\.csv"$/.test(bExport.disposition),
+    unreachable(bExport) || `status ${bExport.status}`,
+  );
+
+  const aExport = await exportCsv(A.jwt);
+  record(
+    "owner A's export contains none of B's customers",
+    "200, A's rows, none of B's",
+    aExport.status === 200 &&
+      aExport.text.includes("Customer One") &&
+      !aExport.text.includes("B Customer") &&
+      !aExport.text.includes("Zoë Ángel") &&
+      !aExport.text.includes("=1+1"),
+    unreachable(aExport) || `status ${aExport.status}`,
+  );
+
+  record(
+    "formula-injection cells and + phones export as text",
+    "'=1+1 and '+447700900999",
+    bExport.text.includes("'=1+1") && bExport.text.includes("'+447700900999"),
+    unreachable(bExport) || `status ${bExport.status}`,
+  );
+
+  const anonExport = await exportCsv(null);
+  record(
+    "an export without a login is refused",
+    "401",
+    anonExport.status === 401,
+    unreachable(anonExport) || `status ${anonExport.status}`,
   );
 
   // --- positive control: A still reaches their own data ---
