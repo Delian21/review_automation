@@ -59,6 +59,10 @@ Analytics beyond sent and clicked, multi-location, team accounts, AI-written rep
 - Hosting: Netlify or Vercel
 - Secrets in server-side environment variables only
 
+## Data and security
+
+- Deleting an owner (auth.users) cascades to their business, customers, messages and feedback. Never delete a real owner's account without exporting their data first. Any in-app account deletion needs an explicit confirmation step.
+
 ## Data model (when the backend starts)
 
 - `businesses`: owner id, name, Google review link, message template, delay setting
